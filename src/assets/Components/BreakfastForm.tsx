@@ -11,24 +11,24 @@ function BreakfastForm({}: Props) {
       <h2>Seleccionar Almuerzos</h2>
       <div className="row row-cols-3 g-3">
         <div className="col">
-          <OrderButton>
+          <OrderButton label="Combo 1">
             Combo ~1~ <br /> $14.000
           </OrderButton>
         </div>
         <div className="col">
-          <OrderButton>
+          <OrderButton value={10000} label="combo 2">
             Combo ~2~
             <br /> $10.000
           </OrderButton>
         </div>
         <div className="col">
-          <OrderButton>
+          <OrderButton value={8500} label="combo 3">
             Combo ~3~
             <br /> $8.500
           </OrderButton>
         </div>
         <div className="col">
-          <OrderButton>
+          <OrderButton value={11500} label="combo 4">
             Combo ~4~
             <br /> $11.500
           </OrderButton>

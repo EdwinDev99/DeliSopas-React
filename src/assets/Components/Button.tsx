@@ -6,7 +6,7 @@ type Props = {
 
 function Button({ children }: Props) {
   return (
-    <button className="btn btn-success btn-lg" type="button">
+    <button className="btn btn-success btn-lg" type="submit">
       {children}
     </button>
   );

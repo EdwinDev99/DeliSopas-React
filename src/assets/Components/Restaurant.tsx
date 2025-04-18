@@ -6,8 +6,8 @@ type Props = {};
 function Restaurant({}: Props) {
   return (
     <div className="container">
-      {/* <LounchForm /> */}
-      <BreakfastForm />
+      <LounchForm />
+      {/* <BreakfastForm /> */}
     </div>
   );
 }
