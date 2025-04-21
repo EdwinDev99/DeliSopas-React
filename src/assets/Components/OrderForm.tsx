@@ -13,13 +13,29 @@ type Props = {
 
 function OrderForm({ title, items, onSubmit }: Props) {
   const methods = useForm();
-  const { setValue, register, handleSubmit } = methods;
+  const { setValue, register, handleSubmit, watch } = methods;
   const [orders, setOrders] = useState<Order[]>([]);
 
   const handleButtonClick = (order: Order) => {
-    const updatedOrders = [...orders, order];
+    const existingOrder = orders.find((o) => o.nombre === order.nombre);
+    let updatedOrders;
+
+    if (existingOrder) {
+      updatedOrders = orders.map((o) =>
+        o.nombre === order.nombre
+          ? { ...o, cantidad: (o.cantidad || 1) + 1 }
+          : o
+      );
+    } else {
+      updatedOrders = [...orders, { ...order, cantidad: 1 }];
+    }
+
     setOrders(updatedOrders);
     setValue("productos", updatedOrders);
+  };
+
+  const calcularTotal = () => {
+    return orders.reduce((total, o) => total + o.precio * (o.cantidad || 1), 0);
   };
 
   return (
@@ -28,6 +44,8 @@ function OrderForm({ title, items, onSubmit }: Props) {
         onSubmit={handleSubmit((data) => {
           console.log("Pedido:", data);
           onSubmit?.(data);
+          methods.reset(); // Limpia campos como mesa y detalles
+          setOrders([]); // Limpia productos seleccionados
         })}
       >
         <Input {...register("mesa")}>MESA</Input>
@@ -42,7 +60,32 @@ function OrderForm({ title, items, onSubmit }: Props) {
           ))}
         </div>
 
-        {/* Campo para detalles del pedido */}
+        {/* Lista de productos seleccionados */}
+        {orders.length > 0 && (
+          <div className="mt-4">
+            <h5>Resumen del pedido:</h5>
+            <ul className="list-group">
+              {orders.map((item, idx) => (
+                <li
+                  key={idx}
+                  className="list-group-item d-flex justify-content-between"
+                >
+                  <span>
+                    {item.nombre} x {item.cantidad}
+                  </span>
+                  <span>
+                    ${(item.precio * (item.cantidad || 1)).toLocaleString()}
+                  </span>
+                </li>
+              ))}
+              <li className="list-group-item d-flex justify-content-between fw-bold">
+                <span>Total</span>
+                <span>${calcularTotal().toLocaleString()}</span>
+              </li>
+            </ul>
+          </div>
+        )}
+
         <div className="mt-3">
           <label htmlFor="detalles">Detalles del Pedido</label>
           <input

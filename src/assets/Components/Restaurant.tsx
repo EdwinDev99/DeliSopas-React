@@ -1,5 +1,7 @@
+import ResumenPedidoCard from "./CardOrderSummary";
 import OrderForm from "./OrderForm";
 import { Order } from "./Schemas/luchSchema";
+import { useState } from "react";
 
 const lunchItems: Order[] = [
   { nombre: "Almuerzo", precio: 13000 },
@@ -32,10 +34,33 @@ const breakfastItems: Order[] = [
 ];
 
 function Restaurant() {
+  const [pedidos, setPedidos] = useState<any[]>([]); // o tipado más exacto si deseas
+
+  const handleNuevoPedido = (data: any) => {
+    setPedidos((prev) => [...prev, data]);
+  };
+
   return (
     <div className="container">
-      <OrderForm title="Almuerzos" items={lunchItems} />
-      <OrderForm title="Desayunos" items={breakfastItems} />
+      <OrderForm
+        title="Almuerzos"
+        items={lunchItems}
+        onSubmit={handleNuevoPedido}
+      />
+      <OrderForm
+        title="Desayunos"
+        items={breakfastItems}
+        onSubmit={handleNuevoPedido}
+      />
+
+      <h3 className="mt-5">Pedidos Recibidos</h3>
+      <div className="row row-cols-1 row-cols-md-2 g-3 mt-3">
+        {pedidos.map((pedido, index) => (
+          <div className="col" key={index}>
+            <ResumenPedidoCard pedido={pedido} />
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
