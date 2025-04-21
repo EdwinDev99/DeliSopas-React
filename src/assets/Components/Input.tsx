@@ -1,21 +1,19 @@
 import { ReactNode } from "react";
+import { useFormContext } from "react-hook-form";
 
 type Props = {
   children: ReactNode;
+  name: string;
 };
 
-function Input({ children }: Props) {
+function Input({ children, name }: Props) {
+  const { register } = useFormContext();
   return (
     <div className="mb-3">
-      <label htmlFor="exampleInputEmail1" className="form-label">
+      <label htmlFor={name} className="form-label">
         {children}
       </label>
-      <input
-        type="number"
-        className="form-control"
-        id="exampleInputEmail1"
-        aria-describedby="emailHelp"
-      />
+      <input {...register(name)} type="number" className="form-control" />
     </div>
   );
 }
