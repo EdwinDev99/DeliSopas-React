@@ -1,16 +1,20 @@
+import { useState } from "react";
 import { Order } from "./Schemas/luchSchema";
 
 type Pedido = {
   mesa: string;
   detalles: string;
   productos: Order[];
+  metodoPago?: string;
+  pagado?: boolean;
 };
 
 type Props = {
   pedido: Pedido;
+  onPagoCompleto: (pedidoActualizado: Pedido) => void;
 };
 
-function ResumenPedidoCard({ pedido }: Props) {
+function ResumenPedidoCard({ pedido, onPagoCompleto }: Props) {
   // Agrupar por nombre del producto
   const productosAgrupados = pedido.productos.reduce((acc, producto) => {
     const nombre = producto.nombre;
@@ -34,6 +38,11 @@ function ResumenPedidoCard({ pedido }: Props) {
       0
     );
   };
+
+  const [metodoPago, setMetodoPago] = useState<string>(
+    pedido.metodoPago || "efectivo"
+  );
+  const [pagado, setPagado] = useState<boolean>(pedido.pagado || false);
 
   return (
     <div className="card p-4 mb-4 shadow-sm">
@@ -65,6 +74,45 @@ function ResumenPedidoCard({ pedido }: Props) {
       <h6 className="fw-bold text-end">
         Total del pedido: ${calcularTotal().toLocaleString()}
       </h6>
+
+      {/* Mostrar opciones de pago solo si no ha sido pagado */}
+      {!pagado && (
+        <>
+          <div className="mt-3">
+            <label className="me-2">Método de Pago:</label>
+            <select
+              value={metodoPago}
+              onChange={(e) => setMetodoPago(e.target.value)}
+              className="form-select"
+            >
+              <option value="efectivo">Efectivo</option>
+              <option value="nequi">Nequi</option>
+              <option value="daviplata">Daviplata</option>
+            </select>
+          </div>
+
+          <button
+            className="btn btn-success mt-2"
+            onClick={() => {
+              if (!pedido.productos || pedido.productos.length === 0) {
+                console.error(
+                  "Pedido sin productos, no se puede completar el pago"
+                );
+                return;
+              }
+
+              setPagado(true);
+              onPagoCompleto({ ...pedido, metodoPago, pagado: true });
+            }}
+          >
+            ✔️ Hecho (pagado)
+          </button>
+        </>
+      )}
+
+      {pagado && (
+        <span className="badge bg-success mt-2">✅ Pagado ({metodoPago})</span>
+      )}
     </div>
   );
 }

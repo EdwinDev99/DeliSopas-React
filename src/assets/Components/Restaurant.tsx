@@ -1,7 +1,9 @@
-import ResumenPedidoCard from "./CardOrderSummary";
-import OrderForm from "./OrderForm";
-import { Order } from "./Schemas/luchSchema";
 import { useState } from "react";
+import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import { Order } from "./Schemas/luchSchema";
+import OrderForm from "./OrderForm";
+import ResumenVentas from "./ResumenVentas";
+import ResumenPedidoCard from "./CardOrderSummary";
 
 const lunchItems: Order[] = [
   { nombre: "Almuerzo", precio: 13000 },
@@ -34,34 +36,124 @@ const breakfastItems: Order[] = [
 ];
 
 function Restaurant() {
-  const [pedidos, setPedidos] = useState<any[]>([]); // o tipado más exacto si deseas
+  const [pedidos, setPedidos] = useState<any[]>([]);
+  const [resumenDelDia, setResumenDelDia] = useState<any[]>([]);
 
   const handleNuevoPedido = (data: any) => {
     setPedidos((prev) => [...prev, data]);
   };
 
-  return (
-    <div className="container">
-      <OrderForm
-        title="Almuerzos"
-        items={lunchItems}
-        onSubmit={handleNuevoPedido}
-      />
-      <OrderForm
-        title="Desayunos"
-        items={breakfastItems}
-        onSubmit={handleNuevoPedido}
-      />
+  const handlePagoCompleto = (pedidoActualizado: any) => {
+    setPedidos((prev) =>
+      prev.map((pedido) =>
+        pedido.mesa === pedidoActualizado.mesa ? pedidoActualizado : pedido
+      )
+    );
+    setResumenDelDia((prev) => [...prev, pedidoActualizado]);
+  };
 
-      <h3 className="mt-5">Pedidos Recibidos</h3>
-      <div className="row row-cols-1 row-cols-md-2 g-3 mt-3">
-        {pedidos.map((pedido, index) => (
-          <div className="col" key={index}>
-            <ResumenPedidoCard pedido={pedido} />
-          </div>
-        ))}
+  const calcularTotal = (productos: Order[]) => {
+    return productos.reduce(
+      (total, producto) => total + producto.precio * (producto.cantidad || 1),
+      0
+    );
+  };
+
+  return (
+    <Router>
+      <div className="container mt-4">
+        <h1 className="mb-4">Restaurante</h1>
+
+        {/* Navegación principal */}
+        <div className="d-flex flex-wrap gap-3 mb-5">
+          <Link to="/almuerzos" className="btn btn-primary">
+            Almuerzos
+          </Link>
+          <Link to="/desayunos" className="btn btn-success">
+            Desayunos
+          </Link>
+          <Link to="/pedidos" className="btn btn-warning">
+            Pedidos Recibidos
+          </Link>
+          <Link to="/resumen" className="btn btn-info">
+            Resumen del Día
+          </Link>
+        </div>
+
+        {/* Definición de Rutas */}
+        <Routes>
+          <Route
+            path="/almuerzos"
+            element={
+              <OrderForm
+                title="Almuerzos"
+                items={lunchItems}
+                onSubmit={handleNuevoPedido}
+              />
+            }
+          />
+          <Route
+            path="/desayunos"
+            element={
+              <OrderForm
+                title="Desayunos"
+                items={breakfastItems}
+                onSubmit={handleNuevoPedido}
+              />
+            }
+          />
+          <Route
+            path="/pedidos"
+            element={
+              <div className="row row-cols-1 row-cols-md-2 g-3">
+                {pedidos.map((pedido, index) => (
+                  <div className="col" key={index}>
+                    <ResumenPedidoCard
+                      pedido={pedido}
+                      onPagoCompleto={handlePagoCompleto}
+                    />
+                  </div>
+                ))}
+              </div>
+            }
+          />
+          <Route
+            path="/resumen"
+            element={
+              <>
+                <ul className="list-group mb-4">
+                  <li className="list-group-item">
+                    Total de pedidos: {resumenDelDia.length}
+                  </li>
+                  <li className="list-group-item">
+                    Total en efectivo: $
+                    {resumenDelDia
+                      .filter((p) => p.metodoPago === "efectivo")
+                      .reduce((acc, p) => acc + calcularTotal(p.productos), 0)
+                      .toLocaleString()}
+                  </li>
+                  <li className="list-group-item">
+                    Total en Nequi: $
+                    {resumenDelDia
+                      .filter((p) => p.metodoPago === "nequi")
+                      .reduce((acc, p) => acc + calcularTotal(p.productos), 0)
+                      .toLocaleString()}
+                  </li>
+                  <li className="list-group-item">
+                    Total en Daviplata: $
+                    {resumenDelDia
+                      .filter((p) => p.metodoPago === "daviplata")
+                      .reduce((acc, p) => acc + calcularTotal(p.productos), 0)
+                      .toLocaleString()}
+                  </li>
+                </ul>
+                <ResumenVentas resumenDelDia={resumenDelDia} />
+              </>
+            }
+          />
+        </Routes>
       </div>
-    </div>
+    </Router>
   );
 }
 

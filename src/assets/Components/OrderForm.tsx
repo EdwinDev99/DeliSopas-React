@@ -88,8 +88,7 @@ function OrderForm({ title, items, onSubmit }: Props) {
 
         <div className="mt-3">
           <label htmlFor="detalles">Detalles del Pedido</label>
-          <input
-            type="text"
+          <textarea
             id="detalles"
             {...register("detalles")}
             placeholder="Ejemplo: Sin cebolla, sin salsa..."
