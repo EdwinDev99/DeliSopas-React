@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import { Order } from "./Schemas/luchSchema";
 import OrderForm from "./OrderForm";
@@ -38,6 +38,28 @@ const breakfastItems: Order[] = [
 function Restaurant() {
   const [pedidos, setPedidos] = useState<any[]>([]);
   const [resumenDelDia, setResumenDelDia] = useState<any[]>([]);
+  const [cargando, setCargando] = useState(true);
+
+  useEffect(() => {
+    const pedidosGuardados = localStorage.getItem("pedidos");
+    const resumenGuardado = localStorage.getItem("resumenDelDia");
+
+    if (pedidosGuardados) {
+      setPedidos(JSON.parse(pedidosGuardados));
+    }
+    if (resumenGuardado) {
+      setResumenDelDia(JSON.parse(resumenGuardado));
+    }
+
+    setCargando(false);
+  }, []);
+
+  useEffect(() => {
+    if (!cargando) {
+      localStorage.setItem("pedidos", JSON.stringify(pedidos));
+      localStorage.setItem("resumenDelDia", JSON.stringify(resumenDelDia));
+    }
+  }, [pedidos, resumenDelDia, cargando]);
 
   const handleNuevoPedido = (data: any) => {
     setPedidos((prev) => [...prev, data]);
@@ -59,12 +81,31 @@ function Restaurant() {
     );
   };
 
+  if (cargando) {
+    return (
+      <div className="container mt-4">
+        <h2>Cargando datos...</h2>
+      </div>
+    );
+  }
+
+  const handleCerrarCaja = () => {
+    const confirmacion = window.confirm(
+      "¿Estás seguro de que quieres cerrar la caja? Se borrarán todos los datos."
+    );
+    if (confirmacion) {
+      setPedidos([]);
+      setResumenDelDia([]);
+      localStorage.removeItem("pedidos");
+      localStorage.removeItem("resumenDelDia");
+    }
+  };
+
   return (
     <Router>
       <div className="container mt-4">
         <h1 className="mb-4">Restaurante</h1>
 
-        {/* Navegación principal */}
         <div className="d-flex flex-wrap gap-3 mb-5">
           <Link to="/almuerzos" className="btn btn-primary">
             Almuerzos
@@ -78,9 +119,11 @@ function Restaurant() {
           <Link to="/resumen" className="btn btn-info">
             Resumen del Día
           </Link>
+          <button onClick={handleCerrarCaja} className="btn btn-danger">
+            Cerrar Caja
+          </button>
         </div>
 
-        {/* Definición de Rutas */}
         <Routes>
           <Route
             path="/almuerzos"
