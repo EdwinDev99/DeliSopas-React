@@ -13,7 +13,7 @@ type Props = {
 
 function OrderForm({ title, items, onSubmit }: Props) {
   const methods = useForm();
-  const { setValue, register, handleSubmit, watch } = methods;
+  const { setValue, register, handleSubmit } = methods;
   const [orders, setOrders] = useState<Order[]>([]);
 
   const handleButtonClick = (order: Order) => {
