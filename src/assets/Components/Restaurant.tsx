@@ -11,6 +11,7 @@ import {
   addDoc,
   deleteDoc,
   doc,
+  onSnapshot,
 } from "firebase/firestore";
 
 const lunchItems: Order[] = [
@@ -49,21 +50,27 @@ function Restaurant() {
   const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
-    const cargarDatos = async () => {
-      const pedidosSnapshot = await getDocs(collection(db, "pedidos"));
-      const resumenSnapshot = await getDocs(collection(db, "resumenDelDia"));
+    const unsubscribePedidos = onSnapshot(
+      collection(db, "pedidos"),
+      (snapshot) => {
+        setPedidos(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
+        setCargando(false);
+      }
+    );
 
-      setPedidos(
-        pedidosSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
-      );
-      setResumenDelDia(
-        resumenSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
-      );
+    const unsubscribeResumen = onSnapshot(
+      collection(db, "resumenDelDia"),
+      (snapshot) => {
+        setResumenDelDia(
+          snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+        );
+      }
+    );
 
-      setCargando(false);
+    return () => {
+      unsubscribePedidos();
+      unsubscribeResumen();
     };
-
-    cargarDatos();
   }, []);
 
   const guardarPedidoEnFirestore = async (pedido: any) => {
