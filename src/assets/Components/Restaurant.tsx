@@ -12,6 +12,9 @@ import {
   deleteDoc,
   doc,
   onSnapshot,
+  updateDoc,
+  query,
+  orderBy,
 } from "firebase/firestore";
 
 const lunchItems: Order[] = [
@@ -50,13 +53,15 @@ function Restaurant() {
   const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
-    const unsubscribePedidos = onSnapshot(
+    const pedidosQuery = query(
       collection(db, "pedidos"),
-      (snapshot) => {
-        setPedidos(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
-        setCargando(false);
-      }
+      orderBy("timestamp", "desc")
     );
+
+    const unsubscribePedidos = onSnapshot(pedidosQuery, (snapshot) => {
+      setPedidos(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
+      setCargando(false);
+    });
 
     const unsubscribeResumen = onSnapshot(
       collection(db, "resumenDelDia"),
@@ -74,7 +79,10 @@ function Restaurant() {
   }, []);
 
   const guardarPedidoEnFirestore = async (pedido: any) => {
-    await addDoc(collection(db, "pedidos"), pedido);
+    await addDoc(collection(db, "pedidos"), {
+      ...pedido,
+      timestamp: new Date(),
+    });
   };
 
   const guardarResumenEnFirestore = async (pedido: any) => {
@@ -89,17 +97,20 @@ function Restaurant() {
 
   const handleNuevoPedido = async (data: any) => {
     await guardarPedidoEnFirestore(data);
-    setPedidos((prev) => [...prev, data]);
   };
 
   const handlePagoCompleto = async (pedidoActualizado: any) => {
-    const nuevosPedidos = pedidos.map((pedido) =>
-      pedido.mesa === pedidoActualizado.mesa ? pedidoActualizado : pedido
-    );
-    setPedidos(nuevosPedidos);
-    setResumenDelDia((prev) => [...prev, pedidoActualizado]);
+    try {
+      const pedidoRef = doc(db, "pedidos", pedidoActualizado.id);
+      await updateDoc(pedidoRef, {
+        metodoPago: pedidoActualizado.metodoPago,
+        pagado: true,
+      });
 
-    await guardarResumenEnFirestore(pedidoActualizado);
+      await guardarResumenEnFirestore(pedidoActualizado);
+    } catch (error) {
+      console.error("Error al marcar como pagado:", error);
+    }
   };
 
   const calcularTotal = (productos: Order[]) => {
