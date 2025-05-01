@@ -89,7 +89,7 @@ function ResumenPedidoCard({
           <option value="efectivo">Efectivo</option>
           <option value="nequi">Nequi</option>
           <option value="daviplata">Daviplata</option>
-          <option value="daviplata">Codigo QR</option>
+          <option value="codigoQR">Codigo QR</option>
         </select>
       </div>
 
