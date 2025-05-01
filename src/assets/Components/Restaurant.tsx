@@ -4,6 +4,14 @@ import { Order } from "./Schemas/luchSchema";
 import OrderForm from "./OrderForm";
 import ResumenVentas from "./ResumenVentas";
 import ResumenPedidoCard from "./CardOrderSummary";
+import { db } from "./firebase/firebase";
+import {
+  collection,
+  getDocs,
+  addDoc,
+  deleteDoc,
+  doc,
+} from "firebase/firestore";
 
 const lunchItems: Order[] = [
   { nombre: "Almuerzo", precio: 13000 },
@@ -41,37 +49,50 @@ function Restaurant() {
   const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
-    const pedidosGuardados = localStorage.getItem("pedidos");
-    const resumenGuardado = localStorage.getItem("resumenDelDia");
+    const cargarDatos = async () => {
+      const pedidosSnapshot = await getDocs(collection(db, "pedidos"));
+      const resumenSnapshot = await getDocs(collection(db, "resumenDelDia"));
 
-    if (pedidosGuardados) {
-      setPedidos(JSON.parse(pedidosGuardados));
-    }
-    if (resumenGuardado) {
-      setResumenDelDia(JSON.parse(resumenGuardado));
-    }
+      setPedidos(
+        pedidosSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+      );
+      setResumenDelDia(
+        resumenSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+      );
 
-    setCargando(false);
+      setCargando(false);
+    };
+
+    cargarDatos();
   }, []);
 
-  useEffect(() => {
-    if (!cargando) {
-      localStorage.setItem("pedidos", JSON.stringify(pedidos));
-      localStorage.setItem("resumenDelDia", JSON.stringify(resumenDelDia));
-    }
-  }, [pedidos, resumenDelDia, cargando]);
+  const guardarPedidoEnFirestore = async (pedido: any) => {
+    await addDoc(collection(db, "pedidos"), pedido);
+  };
 
-  const handleNuevoPedido = (data: any) => {
+  const guardarResumenEnFirestore = async (pedido: any) => {
+    await addDoc(collection(db, "resumenDelDia"), pedido);
+  };
+
+  const eliminarColeccion = async (nombre: string) => {
+    const snapshot = await getDocs(collection(db, nombre));
+    const deletes = snapshot.docs.map((d) => deleteDoc(doc(db, nombre, d.id)));
+    await Promise.all(deletes);
+  };
+
+  const handleNuevoPedido = async (data: any) => {
+    await guardarPedidoEnFirestore(data);
     setPedidos((prev) => [...prev, data]);
   };
 
-  const handlePagoCompleto = (pedidoActualizado: any) => {
-    setPedidos((prev) =>
-      prev.map((pedido) =>
-        pedido.mesa === pedidoActualizado.mesa ? pedidoActualizado : pedido
-      )
+  const handlePagoCompleto = async (pedidoActualizado: any) => {
+    const nuevosPedidos = pedidos.map((pedido) =>
+      pedido.mesa === pedidoActualizado.mesa ? pedidoActualizado : pedido
     );
+    setPedidos(nuevosPedidos);
     setResumenDelDia((prev) => [...prev, pedidoActualizado]);
+
+    await guardarResumenEnFirestore(pedidoActualizado);
   };
 
   const calcularTotal = (productos: Order[]) => {
@@ -81,6 +102,18 @@ function Restaurant() {
     );
   };
 
+  const handleCerrarCaja = async () => {
+    const confirmacion = window.confirm(
+      "¿Estás seguro de que quieres cerrar la caja? Se borrarán todos los datos."
+    );
+    if (confirmacion) {
+      setPedidos([]);
+      setResumenDelDia([]);
+      await eliminarColeccion("pedidos");
+      await eliminarColeccion("resumenDelDia");
+    }
+  };
+
   if (cargando) {
     return (
       <div className="container mt-4">
@@ -88,18 +121,6 @@ function Restaurant() {
       </div>
     );
   }
-
-  const handleCerrarCaja = () => {
-    const confirmacion = window.confirm(
-      "¿Estás seguro de que quieres cerrar la caja? Se borrarán todos los datos."
-    );
-    if (confirmacion) {
-      setPedidos([]);
-      setResumenDelDia([]);
-      localStorage.removeItem("pedidos");
-      localStorage.removeItem("resumenDelDia");
-    }
-  };
 
   return (
     <Router>
