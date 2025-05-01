@@ -19,7 +19,7 @@ import {
 const lunchItems: Order[] = [
   { nombre: "Almuerzo", precio: 13000 },
   { nombre: "Ejecutivo Varios", precio: 19000 },
-  { nombre: "Eje. Sopa Especial", precio: 13000 },
+  { nombre: "Eje. Sopa Especial", precio: 20000 },
   { nombre: "Ejecutivo Churrasco", precio: 22000 },
   { nombre: "Ejecutivo Sobre Barriga", precio: 19000 },
   { nombre: "Ejecutivo Sobre Mojarra", precio: 19000 },
