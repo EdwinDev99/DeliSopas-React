@@ -149,7 +149,9 @@ function Restaurant() {
   return (
     <Router>
       <div className="container mt-4">
-        <h1 className="mb-4">Restaurante</h1>
+        <h1 className="mb-4 text-center text-success fw-bold display-4">
+          Delisopas
+        </h1>
 
         <div className="d-flex flex-wrap gap-3 mb-5">
           <Link to="/almuerzos" className="btn btn-primary">
