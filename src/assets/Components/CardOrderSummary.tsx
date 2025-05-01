@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Order } from "./Schemas/luchSchema";
 
 type Pedido = {
+  id: string;
   mesa: string;
   detalles: string;
   productos: Order[];
@@ -12,10 +13,14 @@ type Pedido = {
 type Props = {
   pedido: Pedido;
   onPagoCompleto: (pedidoActualizado: Pedido) => void;
+  onCancelarPedido: (pedido: Pedido) => void;
 };
 
-function ResumenPedidoCard({ pedido, onPagoCompleto }: Props) {
-  // Agrupar por nombre del producto
+function ResumenPedidoCard({
+  pedido,
+  onPagoCompleto,
+  onCancelarPedido,
+}: Props) {
   const productosAgrupados = pedido.productos.reduce((acc, producto) => {
     const nombre = producto.nombre;
     const cantidad = producto.cantidad || 1;
@@ -42,7 +47,6 @@ function ResumenPedidoCard({ pedido, onPagoCompleto }: Props) {
   const [metodoPago, setMetodoPago] = useState<string>(
     pedido.metodoPago || "efectivo"
   );
-  const [pagado, setPagado] = useState<boolean>(pedido.pagado || false);
 
   return (
     <div className="card p-4 mb-4 shadow-sm">
@@ -75,44 +79,44 @@ function ResumenPedidoCard({ pedido, onPagoCompleto }: Props) {
         Total del pedido: ${calcularTotal().toLocaleString()}
       </h6>
 
-      {/* Mostrar opciones de pago solo si no ha sido pagado */}
-      {!pagado && (
-        <>
-          <div className="mt-3">
-            <label className="me-2">Método de Pago:</label>
-            <select
-              value={metodoPago}
-              onChange={(e) => setMetodoPago(e.target.value)}
-              className="form-select"
-            >
-              <option value="efectivo">Efectivo</option>
-              <option value="nequi">Nequi</option>
-              <option value="daviplata">Daviplata</option>
-            </select>
-          </div>
+      <div className="mt-3">
+        <label className="me-2">Método de Pago:</label>
+        <select
+          value={metodoPago}
+          onChange={(e) => setMetodoPago(e.target.value)}
+          className="form-select"
+        >
+          <option value="efectivo">Efectivo</option>
+          <option value="nequi">Nequi</option>
+          <option value="daviplata">Daviplata</option>
+          <option value="daviplata">Codigo QR</option>
+        </select>
+      </div>
 
-          <button
-            className="btn btn-success mt-2"
-            onClick={() => {
-              if (!pedido.productos || pedido.productos.length === 0) {
-                console.error(
-                  "Pedido sin productos, no se puede completar el pago"
-                );
-                return;
-              }
+      <div className="d-flex gap-2 mt-3">
+        <button
+          className="btn btn-success"
+          onClick={() => {
+            if (!pedido.productos || pedido.productos.length === 0) {
+              console.error(
+                "Pedido sin productos, no se puede completar el pago"
+              );
+              return;
+            }
 
-              setPagado(true);
-              onPagoCompleto({ ...pedido, metodoPago, pagado: true });
-            }}
-          >
-            ✔️ Hecho (pagado)
-          </button>
-        </>
-      )}
+            onPagoCompleto({ ...pedido, metodoPago, pagado: true });
+          }}
+        >
+          ✔️ Hecho (pagado)
+        </button>
 
-      {pagado && (
-        <span className="badge bg-success mt-2">✅ Pagado ({metodoPago})</span>
-      )}
+        <button
+          className="btn btn-danger"
+          onClick={() => onCancelarPedido(pedido)}
+        >
+          ❌ Cancelar pedido
+        </button>
+      </div>
     </div>
   );
 }

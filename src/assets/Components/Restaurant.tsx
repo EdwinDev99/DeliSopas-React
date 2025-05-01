@@ -101,15 +101,21 @@ function Restaurant() {
 
   const handlePagoCompleto = async (pedidoActualizado: any) => {
     try {
-      const pedidoRef = doc(db, "pedidos", pedidoActualizado.id);
-      await updateDoc(pedidoRef, {
-        metodoPago: pedidoActualizado.metodoPago,
-        pagado: true,
-      });
-
+      // Guardar resumen
       await guardarResumenEnFirestore(pedidoActualizado);
+
+      // Eliminar el pedido original (esto lo hace desaparecer de todos los dispositivos)
+      await deleteDoc(doc(db, "pedidos", pedidoActualizado.id));
     } catch (error) {
       console.error("Error al marcar como pagado:", error);
+    }
+  };
+
+  const handleCancelarPedido = async (pedidoCancelado: any) => {
+    try {
+      await deleteDoc(doc(db, "pedidos", pedidoCancelado.id));
+    } catch (error) {
+      console.error("Error al cancelar el pedido:", error);
     }
   };
 
@@ -188,14 +194,17 @@ function Restaurant() {
             path="/pedidos"
             element={
               <div className="row row-cols-1 row-cols-md-2 g-3">
-                {pedidos.map((pedido, index) => (
-                  <div className="col" key={index}>
-                    <ResumenPedidoCard
-                      pedido={pedido}
-                      onPagoCompleto={handlePagoCompleto}
-                    />
-                  </div>
-                ))}
+                {pedidos
+                  .filter((pedido) => !pedido.pagado) // 👈 Oculta los pagados
+                  .map((pedido, index) => (
+                    <div className="col" key={index}>
+                      <ResumenPedidoCard
+                        pedido={pedido}
+                        onPagoCompleto={handlePagoCompleto}
+                        onCancelarPedido={handleCancelarPedido}
+                      />
+                    </div>
+                  ))}
               </div>
             }
           />
