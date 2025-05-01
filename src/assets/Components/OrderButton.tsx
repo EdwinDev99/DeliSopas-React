@@ -11,8 +11,8 @@ function OrderButton({ children, order, onClick }: Props) {
   return (
     <button
       type="button"
-      className="btn btn-success w-50"
-      style={{ height: "100px", whiteSpace: "normal" }}
+      className="btn btn-success w-100 w-md-50" // Ancho 100% en móviles y 50% en pantallas medianas y grandes
+      style={{ height: "100px", whiteSpace: "normal", padding: "10px" }}
       onClick={() => onClick?.(order)}
     >
       {children}

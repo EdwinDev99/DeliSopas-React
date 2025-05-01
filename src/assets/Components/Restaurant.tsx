@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import { HashRouter as Router, Routes, Route, Link } from "react-router-dom";
 import { Order } from "./Schemas/luchSchema";
 import OrderForm from "./OrderForm";
 import ResumenVentas from "./ResumenVentas";
