@@ -18,28 +18,37 @@ import {
 
 const lunchItems: Order[] = [
   { nombre: "Almuerzo", precio: 13000 },
+  { nombre: "Proteina", precio: 4500 },
+  { nombre: "Porcion de papa ", precio: 4000 },
   { nombre: "Ejecutivo Varios", precio: 19000 },
   { nombre: "Eje. Sopa Especial", precio: 20000 },
   { nombre: "Ejecutivo Churrasco", precio: 22000 },
   { nombre: "Ejecutivo Sobre Barriga", precio: 19000 },
   { nombre: "Ejecutivo Sobre Mojarra", precio: 19000 },
+  { nombre: "Sopa del Dia", precio: 5000 },
   { nombre: "Sopa Pequena", precio: 7000 },
   { nombre: "Sopa Grande", precio: 10000 },
+  { nombre: "Platano Queso y Bocadillo ", precio: 5000 },
+  { nombre: "Chicharron Con Arepa", precio: 3000 },
+  { nombre: "Arepa", precio: 3000 },
   { nombre: "Para Llevar", precio: 1000 },
 ];
 
 const breakfastItems: Order[] = [
   { nombre: "Combo 1", precio: 14000 },
-  { nombre: "Combo 2", precio: 10000 },
-  { nombre: "Combo 3", precio: 8500 },
+  { nombre: "Combo 2", precio: 11000 },
+  { nombre: "Combo 3", precio: 9000 },
   { nombre: "Combo 4", precio: 12000 },
-  { nombre: "changua", precio: 6500 },
+  { nombre: "changua", precio: 8500 },
   { nombre: "caldo", precio: 7500 },
   { nombre: "Chocolate y Pan ", precio: 3800 },
   { nombre: "Arroz Con Huevo", precio: 4500 },
-  { nombre: "Huevos Con Arroz", precio: 7000 },
   { nombre: "Huevos Al gusto", precio: 3500 },
   { nombre: "Tamal Especial", precio: 8000 },
+  { nombre: "Para Llevar", precio: 1000 },
+];
+
+const drinks: Order[] = [
   { nombre: "cafe", precio: 3000 },
   { nombre: "Chocolate", precio: 3000 },
   { nombre: "Perico", precio: 2000 },
@@ -48,7 +57,7 @@ const breakfastItems: Order[] = [
   { nombre: "Agua Grande ", precio: 2000 },
   { nombre: "Agua pequena ", precio: 1000 },
   { nombre: "Jugo Hit", precio: 2000 },
-  { nombre: "Jugo Hit Grander", precio: 3000 },
+  { nombre: "Jugo Hit Grande", precio: 3000 },
   { nombre: "Jugos naturales agua", precio: 4500 },
   { nombre: "Jugos naturales leche", precio: 5500 },
   { nombre: "Para Llevar", precio: 1000 },
@@ -167,6 +176,9 @@ function Restaurant() {
           <Link to="/desayunos" className="btn btn-success">
             Desayunos
           </Link>
+          <Link to="/bebidas" className="btn btn-secondary">
+            Bebidas
+          </Link>
           <Link to="/pedidos" className="btn btn-warning">
             Pedidos Recibidos
           </Link>
@@ -195,6 +207,16 @@ function Restaurant() {
               <OrderForm
                 title="Desayunos"
                 items={breakfastItems}
+                onSubmit={handleNuevoPedido}
+              />
+            }
+          />
+          <Route
+            path="/bebidas"
+            element={
+              <OrderForm
+                title="Bebidas"
+                items={drinks}
                 onSubmit={handleNuevoPedido}
               />
             }
