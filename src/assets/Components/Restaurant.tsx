@@ -117,10 +117,7 @@ function Restaurant() {
 
   const handlePagoCompleto = async (pedidoActualizado: any) => {
     try {
-      // Guardar resumen
       await guardarResumenEnFirestore(pedidoActualizado);
-
-      // Eliminar el pedido original (esto lo hace desaparecer de todos los dispositivos)
       await deleteDoc(doc(db, "pedidos", pedidoActualizado.id));
     } catch (error) {
       console.error("Error al marcar como pagado:", error);
@@ -135,7 +132,7 @@ function Restaurant() {
     }
   };
 
-  const calcularTotal = (productos: Order[]) => {
+  const calcularTotal = (productos: Order[] = []) => {
     return productos.reduce(
       (total, producto) => total + producto.precio * (producto.cantidad || 1),
       0
@@ -226,7 +223,7 @@ function Restaurant() {
             element={
               <div className="row row-cols-1 row-cols-md-2 g-3">
                 {pedidos
-                  .filter((pedido) => !pedido.pagado) // 👈 Oculta los pagados
+                  .filter((pedido) => !pedido.pagado)
                   .map((pedido, index) => (
                     <div className="col" key={index}>
                       <ResumenPedidoCard
@@ -251,28 +248,40 @@ function Restaurant() {
                     Total en efectivo: $
                     {resumenDelDia
                       .filter((p) => p.metodoPago === "efectivo")
-                      .reduce((acc, p) => acc + calcularTotal(p.productos), 0)
+                      .reduce(
+                        (acc, p) => acc + calcularTotal(p.productos ?? []),
+                        0
+                      )
                       .toLocaleString()}
                   </li>
                   <li className="list-group-item">
                     Total en Nequi: $
                     {resumenDelDia
                       .filter((p) => p.metodoPago === "nequi")
-                      .reduce((acc, p) => acc + calcularTotal(p.productos), 0)
+                      .reduce(
+                        (acc, p) => acc + calcularTotal(p.productos ?? []),
+                        0
+                      )
                       .toLocaleString()}
                   </li>
                   <li className="list-group-item">
                     Total en Daviplata: $
                     {resumenDelDia
                       .filter((p) => p.metodoPago === "daviplata")
-                      .reduce((acc, p) => acc + calcularTotal(p.productos), 0)
+                      .reduce(
+                        (acc, p) => acc + calcularTotal(p.productos ?? []),
+                        0
+                      )
                       .toLocaleString()}
                   </li>
                   <li className="list-group-item">
                     Total en Codigo QR: $
                     {resumenDelDia
                       .filter((p) => p.metodoPago === "codigoQR")
-                      .reduce((acc, p) => acc + calcularTotal(p.productos), 0)
+                      .reduce(
+                        (acc, p) => acc + calcularTotal(p.productos ?? []),
+                        0
+                      )
                       .toLocaleString()}
                   </li>
                 </ul>

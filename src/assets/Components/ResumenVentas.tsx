@@ -1,4 +1,4 @@
-import { Order } from "./Schemas/luchSchema"; // Asegúrate de importar tu tipo Order
+import { Order } from "./Schemas/luchSchema";
 
 type Pedido = {
   mesa: string;
@@ -11,16 +11,15 @@ type Props = {
 };
 
 function ResumenVentas({ resumenDelDia }: Props) {
-  // Agrupamos los productos por nombre y sumamos las cantidades
   const agruparProductos = (pedidos: Pedido[]) => {
     const productosVendidos: { [key: string]: number } = {};
 
     pedidos.forEach((pedido) => {
-      pedido.productos.forEach((producto) => {
+      (pedido.productos ?? []).forEach((producto) => {
         if (producto.nombre) {
           productosVendidos[producto.nombre] =
             (productosVendidos[producto.nombre] || 0) +
-            (producto.cantidad || 1); // Asumimos 1 si la cantidad no está definida
+            (producto.cantidad || 1);
         }
       });
     });
@@ -28,12 +27,11 @@ function ResumenVentas({ resumenDelDia }: Props) {
     return productosVendidos;
   };
 
-  // Función para calcular el total de ventas (precio * cantidad de cada producto)
   const calcularTotalVentas = () => {
     return resumenDelDia.reduce((total, pedido) => {
       return (
         total +
-        pedido.productos.reduce(
+        (pedido.productos ?? []).reduce(
           (subtotal, producto) =>
             subtotal + producto.precio * (producto.cantidad || 1),
           0

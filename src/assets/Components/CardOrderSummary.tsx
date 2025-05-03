@@ -5,7 +5,7 @@ type Pedido = {
   id: string;
   mesa: string;
   detalles: string;
-  productos: Order[];
+  productos?: Order[]; // ← Puede venir como undefined
   metodoPago?: string;
   pagado?: boolean;
 };
@@ -21,7 +21,9 @@ function ResumenPedidoCard({
   onPagoCompleto,
   onCancelarPedido,
 }: Props) {
-  const productosAgrupados = pedido.productos.reduce((acc, producto) => {
+  const productos = pedido.productos ?? []; // ← Previene errores de undefined
+
+  const productosAgrupados = productos.reduce((acc, producto) => {
     const nombre = producto.nombre;
     const cantidad = producto.cantidad || 1;
 
