@@ -5,9 +5,10 @@ type Pedido = {
   id: string;
   mesa: string;
   detalles: string;
-  productos?: Order[]; // ← Puede venir como undefined
+  productos?: Order[];
   metodoPago?: string;
   pagado?: boolean;
+  estado?: string; // ← Agregado para mostrar estado tipo "en cocina", "servido"
 };
 
 type Props = {
@@ -21,7 +22,7 @@ function ResumenPedidoCard({
   onPagoCompleto,
   onCancelarPedido,
 }: Props) {
-  const productos = pedido.productos ?? []; // ← Previene errores de undefined
+  const productos = pedido.productos ?? [];
 
   const productosAgrupados = productos.reduce((acc, producto) => {
     const nombre = producto.nombre;
@@ -50,9 +51,29 @@ function ResumenPedidoCard({
     pedido.metodoPago || "efectivo"
   );
 
+  const [estado, setEstado] = useState<string>(pedido.estado || "pendiente");
+
+  const estadoColor = (estado: string) => {
+    switch (estado) {
+      case "en cocina":
+        return "warning";
+      case "servido":
+        return "info";
+      case "pendiente":
+        return "secondary";
+      default:
+        return "dark";
+    }
+  };
+
   return (
     <div className="card p-4 mb-4 shadow-sm">
-      <h5 className="mb-3">🪑 Mesa {pedido.mesa}</h5>
+      <div className="d-flex justify-content-between align-items-center mb-2">
+        <h5>🪑 Mesa {pedido.mesa}</h5>
+        <span className={`badge bg-${estadoColor(estado)}`.trim()}>
+          {(estado ?? "pendiente").toUpperCase()}
+        </span>
+      </div>
 
       <ul className="list-group list-group-flush mb-3">
         {Object.values(productosAgrupados).map((item, index) => (
@@ -82,6 +103,19 @@ function ResumenPedidoCard({
       </h6>
 
       <div className="mt-3">
+        <label className="me-2">Estado del pedido:</label>
+        <select
+          value={estado}
+          onChange={(e) => setEstado(e.target.value)}
+          className="form-select mb-2"
+        >
+          <option value="pendiente">Pendiente</option>
+          <option value="en cocina">En cocina</option>
+          <option value="servido">Servido</option>
+        </select>
+      </div>
+
+      <div className="mt-2">
         <label className="me-2">Método de Pago:</label>
         <select
           value={metodoPago}
@@ -91,7 +125,7 @@ function ResumenPedidoCard({
           <option value="efectivo">Efectivo</option>
           <option value="nequi">Nequi</option>
           <option value="daviplata">Daviplata</option>
-          <option value="codigoQR">Codigo QR</option>
+          <option value="codigoQR">Código QR</option>
         </select>
       </div>
 
@@ -106,7 +140,12 @@ function ResumenPedidoCard({
               return;
             }
 
-            onPagoCompleto({ ...pedido, metodoPago, pagado: true });
+            onPagoCompleto({
+              ...pedido,
+              metodoPago,
+              pagado: true,
+              estado,
+            });
           }}
         >
           ✔️ Hecho (pagado)
@@ -114,7 +153,12 @@ function ResumenPedidoCard({
 
         <button
           className="btn btn-danger"
-          onClick={() => onCancelarPedido(pedido)}
+          onClick={() =>
+            onCancelarPedido({
+              ...pedido,
+              estado,
+            })
+          }
         >
           ❌ Cancelar pedido
         </button>
