@@ -12,7 +12,13 @@ type Props = {
 };
 
 function OrderForm({ title, items, onSubmit }: Props) {
-  const methods = useForm();
+  const methods = useForm({
+    defaultValues: {
+      mesa: "",
+      detalles: "",
+      productos: [] as Order[],
+    },
+  });
   const { setValue, register, handleSubmit } = methods;
   const [orders, setOrders] = useState<Order[]>([]);
 
@@ -44,11 +50,12 @@ function OrderForm({ title, items, onSubmit }: Props) {
         onSubmit={handleSubmit((data) => {
           console.log("Pedido:", data);
           onSubmit?.(data);
-          methods.reset(); // Limpia campos como mesa y detalles
-          setOrders([]); // Limpia productos seleccionados
+          methods.reset();
+          setOrders([]);
         })}
       >
-        <Input {...register("mesa")}>MESA</Input>
+        <Input {...register("mesa", { required: true })}>MESA</Input>
+
         <h2>{title}</h2>
         <div className="row row-cols-3 g-3">
           {items.map((item, i) => (
@@ -60,7 +67,6 @@ function OrderForm({ title, items, onSubmit }: Props) {
           ))}
         </div>
 
-        {/* Lista de productos seleccionados */}
         {orders.length > 0 && (
           <div className="mt-4">
             <h5>Resumen del pedido:</h5>

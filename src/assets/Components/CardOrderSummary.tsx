@@ -7,8 +7,9 @@ type Pedido = {
   detalles: string;
   productos?: Order[];
   metodoPago?: string;
+  pagosDivididos?: Record<string, number>;
   pagado?: boolean;
-  estado?: string; // ← Agregado para mostrar estado tipo "en cocina", "servido"
+  estado?: string;
 };
 
 type Props = {
@@ -47,11 +48,39 @@ function ResumenPedidoCard({
     );
   };
 
-  const [metodoPago, setMetodoPago] = useState<string>(
-    pedido.metodoPago || "efectivo"
-  );
+  const totalPedido = calcularTotal();
 
   const [estado, setEstado] = useState<string>(pedido.estado || "pendiente");
+
+  const [pagosDivididos, setPagosDivididos] = useState<Record<string, number>>({
+    efectivo: 0,
+    nequi: 0,
+    daviplata: 0,
+    codigoQR: 0,
+    ...(pedido.pagosDivididos || {}),
+  });
+
+  const metodos = [
+    { valor: "efectivo", label: "💵" },
+    { valor: "nequi", label: "📱 Nequi" },
+    { valor: "daviplata", label: "🏦 Davi" },
+    { valor: "codigoQR", label: "🔳 QR" },
+  ];
+
+  const handlePagoChange = (metodo: string, valor: string) => {
+    const cantidad = parseInt(valor) || 0;
+    setPagosDivididos((prev) => ({
+      ...prev,
+      [metodo]: cantidad,
+    }));
+  };
+
+  const sumaTotalPagada = Object.values(pagosDivididos).reduce(
+    (acc, val) => acc + val,
+    0
+  );
+
+  const pendiente = totalPedido - sumaTotalPagada;
 
   const estadoColor = (estado: string) => {
     switch (estado) {
@@ -70,7 +99,7 @@ function ResumenPedidoCard({
     <div className="card p-4 mb-4 shadow-sm">
       <div className="d-flex justify-content-between align-items-center mb-2">
         <h5>🪑 Mesa {pedido.mesa}</h5>
-        <span className={`badge bg-${estadoColor(estado)}`.trim()}>
+        <span className={`badge bg-${estadoColor(estado)}`}>
           {(estado ?? "pendiente").toUpperCase()}
         </span>
       </div>
@@ -99,7 +128,7 @@ function ResumenPedidoCard({
       )}
 
       <h6 className="fw-bold text-end">
-        Total del pedido: ${calcularTotal().toLocaleString()}
+        Total del pedido: ${totalPedido.toLocaleString()}
       </h6>
 
       <div className="mt-3">
@@ -107,7 +136,7 @@ function ResumenPedidoCard({
         <select
           value={estado}
           onChange={(e) => setEstado(e.target.value)}
-          className="form-select mb-2"
+          className="form-select mb-3"
         >
           <option value="pendiente">Pendiente</option>
           <option value="en cocina">En cocina</option>
@@ -115,34 +144,42 @@ function ResumenPedidoCard({
         </select>
       </div>
 
-      <div className="mt-2">
-        <label className="me-2">Método de Pago:</label>
-        <select
-          value={metodoPago}
-          onChange={(e) => setMetodoPago(e.target.value)}
-          className="form-select"
-        >
-          <option value="efectivo">Efectivo</option>
-          <option value="nequi">Nequi</option>
-          <option value="daviplata">Daviplata</option>
-          <option value="codigoQR">Código QR</option>
-        </select>
+      <div className="mb-2">
+        <label>Métodos de pago (puedes dividir):</label>
+        {metodos.map((metodo) => (
+          <div key={metodo.valor} className="input-group mb-2">
+            <span className="input-group-text w-25">{metodo.label}</span>
+            <input
+              type="number"
+              className="form-control"
+              min="0"
+              value={pagosDivididos[metodo.valor] ?? ""}
+              onChange={(e) => handlePagoChange(metodo.valor, e.target.value)}
+              placeholder="$0"
+            />
+          </div>
+        ))}
       </div>
 
-      <div className="d-flex gap-2 mt-3">
+      <div className="mb-3 text-end">
+        <strong>Total ingresado: ${sumaTotalPagada.toLocaleString()}</strong>
+        <br />
+        <span className={pendiente > 0 ? "text-danger" : "text-success"}>
+          {pendiente > 0
+            ? `Faltan $${pendiente.toLocaleString()}`
+            : "✅ Pago completo"}
+        </span>
+      </div>
+
+      <div className="d-flex gap-2">
         <button
           className="btn btn-success"
+          disabled={pendiente !== 0}
           onClick={() => {
-            if (!pedido.productos || pedido.productos.length === 0) {
-              console.error(
-                "Pedido sin productos, no se puede completar el pago"
-              );
-              return;
-            }
-
             onPagoCompleto({
               ...pedido,
-              metodoPago,
+              pagosDivididos,
+              metodoPago: "dividido",
               pagado: true,
               estado,
             });
