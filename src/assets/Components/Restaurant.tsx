@@ -132,13 +132,6 @@ function Restaurant() {
     }
   };
 
-  const calcularTotal = (productos: Order[] = []) => {
-    return productos.reduce(
-      (total, producto) => total + producto.precio * (producto.cantidad || 1),
-      0
-    );
-  };
-
   const handleCerrarCaja = async () => {
     const confirmacion = window.confirm(
       "¿Estás seguro de que quieres cerrar la caja? Se borrarán todos los datos."
