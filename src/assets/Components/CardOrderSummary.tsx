@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Order } from "./Schemas/luchSchema";
+import { doc, updateDoc } from "firebase/firestore";
+import { db } from "./firebase/firebase";
 
 type Pedido = {
   id: string;
@@ -50,15 +52,23 @@ function ResumenPedidoCard({
 
   const totalPedido = calcularTotal();
 
-  const [estado, setEstado] = useState<string>(pedido.estado || "pendiente");
+  const [pagosDivididos, setPagosDivididos] = useState<Record<string, number>>(
+    {}
+  );
 
-  const [pagosDivididos, setPagosDivididos] = useState<Record<string, number>>({
-    efectivo: 0,
-    nequi: 0,
-    daviplata: 0,
-    codigoQR: 0,
-    ...(pedido.pagosDivididos || {}),
-  });
+  // Reinicia los pagos a cero cuando cambia el pedido
+  useEffect(() => {
+    setPagosDivididos({});
+  }, [pedido.id]);
+
+  const actualizarEstadoPedido = async (id: string, nuevoEstado: string) => {
+    try {
+      const pedidoRef = doc(db, "pedidos", id);
+      await updateDoc(pedidoRef, { estado: nuevoEstado });
+    } catch (error) {
+      console.error("Error al actualizar el estado:", error);
+    }
+  };
 
   const metodos = [
     { valor: "efectivo", label: "💵" },
@@ -69,9 +79,16 @@ function ResumenPedidoCard({
 
   const handlePagoChange = (metodo: string, valor: string) => {
     const cantidad = parseInt(valor) || 0;
+    const totalActualSinMetodo = Object.entries(pagosDivididos)
+      .filter(([clave]) => clave !== metodo)
+      .reduce((acc, [, val]) => acc + val, 0);
+
+    const restante = totalPedido - totalActualSinMetodo;
+    const nuevoValor = Math.min(cantidad, restante);
+
     setPagosDivididos((prev) => ({
       ...prev,
-      [metodo]: cantidad,
+      [metodo]: nuevoValor,
     }));
   };
 
@@ -99,8 +116,10 @@ function ResumenPedidoCard({
     <div className="card p-4 mb-4 shadow-sm">
       <div className="d-flex justify-content-between align-items-center mb-2">
         <h5>🪑 Mesa {pedido.mesa}</h5>
-        <span className={`badge bg-${estadoColor(estado)}`}>
-          {(estado ?? "pendiente").toUpperCase()}
+        <span
+          className={`badge bg-${estadoColor(pedido.estado || "pendiente")}`}
+        >
+          {(pedido.estado || "pendiente").toUpperCase()}
         </span>
       </div>
 
@@ -134,8 +153,11 @@ function ResumenPedidoCard({
       <div className="mt-3">
         <label className="me-2">Estado del pedido:</label>
         <select
-          value={estado}
-          onChange={(e) => setEstado(e.target.value)}
+          value={pedido.estado || "pendiente"}
+          onChange={async (e) => {
+            const nuevoEstado = e.target.value;
+            await actualizarEstadoPedido(pedido.id, nuevoEstado);
+          }}
           className="form-select mb-3"
         >
           <option value="pendiente">Pendiente</option>
@@ -152,10 +174,10 @@ function ResumenPedidoCard({
             <input
               type="number"
               className="form-control"
+              placeholder="$0"
               min="0"
               value={pagosDivididos[metodo.valor] ?? ""}
               onChange={(e) => handlePagoChange(metodo.valor, e.target.value)}
-              placeholder="$0"
             />
           </div>
         ))}
@@ -181,7 +203,6 @@ function ResumenPedidoCard({
               pagosDivididos,
               metodoPago: "dividido",
               pagado: true,
-              estado,
             });
           }}
         >
@@ -190,12 +211,7 @@ function ResumenPedidoCard({
 
         <button
           className="btn btn-danger"
-          onClick={() =>
-            onCancelarPedido({
-              ...pedido,
-              estado,
-            })
-          }
+          onClick={() => onCancelarPedido({ ...pedido })}
         >
           ❌ Cancelar pedido
         </button>

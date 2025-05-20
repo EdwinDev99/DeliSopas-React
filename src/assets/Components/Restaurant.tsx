@@ -221,21 +221,50 @@ function Restaurant() {
           <Route
             path="/pedidos"
             element={
-              <div className="row row-cols-1 row-cols-md-2 g-3">
-                {pedidos
-                  .filter((pedido) => !pedido.pagado)
-                  .map((pedido, index) => (
-                    <div className="col" key={index}>
-                      <ResumenPedidoCard
-                        pedido={pedido}
-                        onPagoCompleto={handlePagoCompleto}
-                        onCancelarPedido={handleCancelarPedido}
-                      />
+              <>
+                {["pendiente", "en cocina", "servido"].map((estado) => (
+                  <div key={estado} className="mb-5">
+                    {/* Encabezado tipo pestaña con ícono, color y estilo */}
+                    <div
+                      className={`d-flex align-items-center justify-content-center mb-3 py-2 rounded fs-5 fw-bold shadow-sm ${
+                        estado === "pendiente"
+                          ? "bg-secondary text-white"
+                          : estado === "en cocina"
+                          ? "bg-warning text-dark"
+                          : estado === "servido"
+                          ? "bg-info text-dark"
+                          : "bg-dark"
+                      }`}
+                    >
+                      {estado === "pendiente" && "⏳ PENDIENTE"}
+                      {estado === "en cocina" && "👨‍🍳 EN COCINA"}
+                      {estado === "servido" && "🍽️ SERVIDO"}
                     </div>
-                  ))}
-              </div>
+
+                    {/* Tarjetas de pedidos */}
+                    <div className="row row-cols-1 row-cols-md-2 g-3">
+                      {pedidos
+                        .filter(
+                          (pedido) =>
+                            !pedido.pagado &&
+                            (pedido.estado || "pendiente") === estado
+                        )
+                        .map((pedido, index) => (
+                          <div className="col" key={index}>
+                            <ResumenPedidoCard
+                              pedido={pedido}
+                              onPagoCompleto={handlePagoCompleto}
+                              onCancelarPedido={handleCancelarPedido}
+                            />
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                ))}
+              </>
             }
           />
+
           <Route
             path="/resumen"
             element={
@@ -243,46 +272,6 @@ function Restaurant() {
                 <ul className="list-group mb-4">
                   <li className="list-group-item">
                     Total de pedidos: {resumenDelDia.length}
-                  </li>
-                  <li className="list-group-item">
-                    Total en efectivo: $
-                    {resumenDelDia
-                      .filter((p) => p.metodoPago === "efectivo")
-                      .reduce(
-                        (acc, p) => acc + calcularTotal(p.productos ?? []),
-                        0
-                      )
-                      .toLocaleString()}
-                  </li>
-                  <li className="list-group-item">
-                    Total en Nequi: $
-                    {resumenDelDia
-                      .filter((p) => p.metodoPago === "nequi")
-                      .reduce(
-                        (acc, p) => acc + calcularTotal(p.productos ?? []),
-                        0
-                      )
-                      .toLocaleString()}
-                  </li>
-                  <li className="list-group-item">
-                    Total en Daviplata: $
-                    {resumenDelDia
-                      .filter((p) => p.metodoPago === "daviplata")
-                      .reduce(
-                        (acc, p) => acc + calcularTotal(p.productos ?? []),
-                        0
-                      )
-                      .toLocaleString()}
-                  </li>
-                  <li className="list-group-item">
-                    Total en Codigo QR: $
-                    {resumenDelDia
-                      .filter((p) => p.metodoPago === "codigoQR")
-                      .reduce(
-                        (acc, p) => acc + calcularTotal(p.productos ?? []),
-                        0
-                      )
-                      .toLocaleString()}
                   </li>
                 </ul>
                 <ResumenVentas resumenDelDia={resumenDelDia} />
