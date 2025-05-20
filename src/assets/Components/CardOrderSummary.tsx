@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Order } from "./Schemas/luchSchema";
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "./firebase/firebase";
+import { Modal, Button, Form } from "react-bootstrap";
 
 type Pedido = {
   id: string;
@@ -56,7 +57,6 @@ function ResumenPedidoCard({
     {}
   );
 
-  // Reinicia los pagos a cero cuando cambia el pedido
   useEffect(() => {
     setPagosDivididos({});
   }, [pedido.id]);
@@ -68,6 +68,50 @@ function ResumenPedidoCard({
     } catch (error) {
       console.error("Error al actualizar el estado:", error);
     }
+  };
+
+  const actualizarProductos = async (nuevosProductos: Order[]) => {
+    try {
+      const pedidoRef = doc(db, "pedidos", pedido.id);
+      await updateDoc(pedidoRef, { productos: nuevosProductos });
+    } catch (error) {
+      console.error("Error al actualizar productos:", error);
+    }
+  };
+
+  // Estado para el modal
+  const [showModal, setShowModal] = useState(false);
+  const [nuevoNombre, setNuevoNombre] = useState("");
+  const [nuevoPrecio, setNuevoPrecio] = useState("");
+
+  const handleShowModal = () => setShowModal(true);
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setNuevoNombre("");
+    setNuevoPrecio("");
+  };
+
+  const handleAgregarProducto = async () => {
+    if (!nuevoNombre || !nuevoPrecio) {
+      alert("Por favor, completa todos los campos.");
+      return;
+    }
+
+    const precio = parseFloat(nuevoPrecio);
+    if (isNaN(precio)) {
+      alert("Precio inválido");
+      return;
+    }
+
+    const nuevoProducto: Order = {
+      nombre: nuevoNombre,
+      precio,
+      cantidad: 1,
+    };
+
+    const nuevosProductos = [...productos, nuevoProducto];
+    await actualizarProductos(nuevosProductos);
+    handleCloseModal();
   };
 
   const metodos = [
@@ -193,7 +237,7 @@ function ResumenPedidoCard({
         </span>
       </div>
 
-      <div className="d-flex gap-2">
+      <div className="d-flex gap-2 flex-wrap">
         <button
           className="btn btn-success"
           disabled={pendiente !== 0}
@@ -215,7 +259,49 @@ function ResumenPedidoCard({
         >
           ❌ Cancelar pedido
         </button>
+
+        <button className="btn btn-outline-primary" onClick={handleShowModal}>
+          ➕ Agregar producto
+        </button>
       </div>
+
+      {/* Modal para agregar producto */}
+      <Modal show={showModal} onHide={handleCloseModal}>
+        <Modal.Header closeButton>
+          <Modal.Title>Agregar nuevo producto</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form>
+            <Form.Group controlId="formNombreProducto">
+              <Form.Label>Nombre del producto</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="Ingrese el nombre"
+                value={nuevoNombre}
+                onChange={(e) => setNuevoNombre(e.target.value)}
+              />
+            </Form.Group>
+
+            <Form.Group controlId="formPrecioProducto" className="mt-3">
+              <Form.Label>Precio</Form.Label>
+              <Form.Control
+                type="number"
+                placeholder="Ingrese el precio"
+                value={nuevoPrecio}
+                onChange={(e) => setNuevoPrecio(e.target.value)}
+              />
+            </Form.Group>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleCloseModal}>
+            Cancelar
+          </Button>
+          <Button variant="primary" onClick={handleAgregarProducto}>
+            Agregar
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 }
