@@ -44,15 +44,13 @@ function ResumenPedidoCard({
     return acc;
   }, {} as Record<string, { nombre: string; precio: number; cantidad: number }>);
 
-  const calcularTotal = () => {
-    return Object.values(productosAgrupados).reduce(
+  const calcularTotal = () =>
+    Object.values(productosAgrupados).reduce(
       (total, item) => total + item.precio * item.cantidad,
       0
     );
-  };
 
   const totalPedido = calcularTotal();
-
   const [pagosDivididos, setPagosDivididos] = useState<Record<string, number>>(
     {}
   );
@@ -79,7 +77,7 @@ function ResumenPedidoCard({
     }
   };
 
-  // Estado para el modal
+  // Modal
   const [showModal, setShowModal] = useState(false);
   const [nuevoNombre, setNuevoNombre] = useState("");
   const [nuevoPrecio, setNuevoPrecio] = useState("");
@@ -157,9 +155,9 @@ function ResumenPedidoCard({
   };
 
   return (
-    <div className="card p-4 mb-4 shadow-sm">
-      <div className="d-flex justify-content-between align-items-center mb-2">
-        <h5>🪑 Mesa {pedido.mesa}</h5>
+    <div className="card p-2 mb-2 shadow-sm">
+      <div className="d-flex justify-content-between align-items-center mb-1">
+        <h6 className="mb-0 fs-6">🪑 Mesa {pedido.mesa}</h6>
         <span
           className={`badge bg-${estadoColor(pedido.estado || "pendiente")}`}
         >
@@ -167,11 +165,11 @@ function ResumenPedidoCard({
         </span>
       </div>
 
-      <ul className="list-group list-group-flush mb-3">
+      <ul className="list-group list-group-flush mb-2 small">
         {Object.values(productosAgrupados).map((item, index) => (
           <li
             key={index}
-            className="list-group-item d-flex justify-content-between align-items-center"
+            className="list-group-item py-1 px-2 d-flex justify-content-between align-items-center"
           >
             <div>
               {item.nombre}{" "}
@@ -185,24 +183,24 @@ function ResumenPedidoCard({
       </ul>
 
       {pedido.detalles && (
-        <p className="text-muted mb-2">
+        <p className="text-muted small mb-1">
           <strong>📝 Detalles:</strong> {pedido.detalles}
         </p>
       )}
 
-      <h6 className="fw-bold text-end">
-        Total del pedido: ${totalPedido.toLocaleString()}
+      <h6 className="fw-bold text-end small">
+        Total: ${totalPedido.toLocaleString()}
       </h6>
 
-      <div className="mt-3">
-        <label className="me-2">Estado del pedido:</label>
+      <div className="mt-2 mb-2">
+        <label className="me-2 small">Estado:</label>
         <select
           value={pedido.estado || "pendiente"}
           onChange={async (e) => {
             const nuevoEstado = e.target.value;
             await actualizarEstadoPedido(pedido.id, nuevoEstado);
           }}
-          className="form-select mb-3"
+          className="form-select form-select-sm"
         >
           <option value="pendiente">Pendiente</option>
           <option value="en cocina">En cocina</option>
@@ -210,10 +208,10 @@ function ResumenPedidoCard({
         </select>
       </div>
 
-      <div className="mb-2">
-        <label>Métodos de pago (puedes dividir):</label>
+      <div className="mb-2 small">
+        <label>Métodos de pago:</label>
         {metodos.map((metodo) => (
-          <div key={metodo.valor} className="input-group mb-2">
+          <div key={metodo.valor} className="input-group input-group-sm mb-1">
             <span className="input-group-text w-25">{metodo.label}</span>
             <input
               type="number"
@@ -227,8 +225,8 @@ function ResumenPedidoCard({
         ))}
       </div>
 
-      <div className="mb-3 text-end">
-        <strong>Total ingresado: ${sumaTotalPagada.toLocaleString()}</strong>
+      <div className="mb-2 text-end small">
+        <strong>Total pagado: ${sumaTotalPagada.toLocaleString()}</strong>
         <br />
         <span className={pendiente > 0 ? "text-danger" : "text-success"}>
           {pendiente > 0
@@ -237,9 +235,9 @@ function ResumenPedidoCard({
         </span>
       </div>
 
-      <div className="d-flex gap-2 flex-wrap">
+      <div className="d-flex gap-1 flex-wrap">
         <button
-          className="btn btn-success"
+          className="btn btn-sm btn-success"
           disabled={pendiente !== 0}
           onClick={() => {
             onPagoCompleto({
@@ -250,33 +248,36 @@ function ResumenPedidoCard({
             });
           }}
         >
-          ✔️ Hecho (pagado)
+          ✔️ Hecho
         </button>
 
         <button
-          className="btn btn-danger"
+          className="btn btn-sm btn-danger"
           onClick={() => onCancelarPedido({ ...pedido })}
         >
-          ❌ Cancelar pedido
+          ❌ Cancelar
         </button>
 
-        <button className="btn btn-outline-primary" onClick={handleShowModal}>
-          ➕ Agregar producto
+        <button
+          className="btn btn-sm btn-outline-primary"
+          onClick={handleShowModal}
+        >
+          ➕ Producto
         </button>
       </div>
 
-      {/* Modal para agregar producto */}
+      {/* Modal */}
       <Modal show={showModal} onHide={handleCloseModal}>
         <Modal.Header closeButton>
-          <Modal.Title>Agregar nuevo producto</Modal.Title>
+          <Modal.Title>Agregar producto</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form>
             <Form.Group controlId="formNombreProducto">
-              <Form.Label>Nombre del producto</Form.Label>
+              <Form.Label>Nombre</Form.Label>
               <Form.Control
                 type="text"
-                placeholder="Ingrese el nombre"
+                placeholder="Nombre"
                 value={nuevoNombre}
                 onChange={(e) => setNuevoNombre(e.target.value)}
               />
@@ -286,7 +287,7 @@ function ResumenPedidoCard({
               <Form.Label>Precio</Form.Label>
               <Form.Control
                 type="number"
-                placeholder="Ingrese el precio"
+                placeholder="Precio"
                 value={nuevoPrecio}
                 onChange={(e) => setNuevoPrecio(e.target.value)}
               />
