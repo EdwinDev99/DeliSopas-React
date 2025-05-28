@@ -3,7 +3,7 @@ import { useState } from "react";
 import Button from "./Button";
 import Input from "./Input";
 import OrderButton from "./OrderButton";
-import { Order } from "./Schemas/luchSchema"; // O uno compartido si son iguales
+import { Order } from "./Schemas/luchSchema";
 
 type Props = {
   title: string;
@@ -15,12 +15,13 @@ function OrderForm({ title, items, onSubmit }: Props) {
   const methods = useForm({
     defaultValues: {
       mesa: "",
-      detalles: "",
+      detalles: "1. ",
       productos: [] as Order[],
     },
   });
-  const { setValue, register, handleSubmit } = methods;
+  const { setValue, register, handleSubmit, watch } = methods;
   const [orders, setOrders] = useState<Order[]>([]);
+  const detalles = watch("detalles");
 
   const handleButtonClick = (order: Order) => {
     const existingOrder = orders.find((o) => o.nombre === order.nombre);
@@ -44,13 +45,28 @@ function OrderForm({ title, items, onSubmit }: Props) {
     return orders.reduce((total, o) => total + o.precio * (o.cantidad || 1), 0);
   };
 
+  const handleDetallesChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setValue("detalles", e.target.value);
+  };
+
+  const handleDetallesKeyDown = (
+    e: React.KeyboardEvent<HTMLTextAreaElement>
+  ) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      const lines = detalles.split("\n");
+      const nextNumber = lines.length + 1;
+      setValue("detalles", detalles + `\n${nextNumber}. `);
+    }
+  };
+
   return (
     <FormProvider {...methods}>
       <form
         onSubmit={handleSubmit((data) => {
           console.log("Pedido:", data);
           onSubmit?.(data);
-          methods.reset();
+          methods.reset({ mesa: "", detalles: "1. ", productos: [] });
           setOrders([]);
         })}
       >
@@ -96,9 +112,12 @@ function OrderForm({ title, items, onSubmit }: Props) {
           <label htmlFor="detalles">Detalles del Pedido</label>
           <textarea
             id="detalles"
-            {...register("detalles")}
             placeholder="Ejemplo: Sin cebolla, sin salsa..."
             className="form-control"
+            value={detalles}
+            onChange={handleDetallesChange}
+            onKeyDown={handleDetallesKeyDown}
+            rows={5}
           />
         </div>
 
