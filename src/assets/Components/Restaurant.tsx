@@ -4,7 +4,7 @@ import { Order } from "./Schemas/luchSchema";
 import OrderForm from "./OrderForm";
 import ResumenVentas from "./ResumenVentas";
 import ResumenPedidoCard from "./CardOrderSummary";
-import { db } from "./firebase/firebase";
+import { auth, db } from "../firebase/firebase";
 import {
   collection,
   getDocs,
@@ -15,6 +15,7 @@ import {
   query,
   orderBy,
 } from "firebase/firestore";
+import { signOut } from "firebase/auth";
 
 const lunchItems: Order[] = [
   { nombre: "Almuerzo", precio: 13000 },
@@ -70,6 +71,10 @@ function Restaurant() {
   const [pedidos, setPedidos] = useState<any[]>([]);
   const [resumenDelDia, setResumenDelDia] = useState<any[]>([]);
   const [cargando, setCargando] = useState(true);
+
+  const handleLogout = () => {
+    signOut(auth);
+  };
 
   useEffect(() => {
     const pedidosQuery = query(
@@ -181,6 +186,7 @@ function Restaurant() {
           <button onClick={handleCerrarCaja} className="btn btn-danger">
             Cerrar Caja
           </button>
+          <button onClick={handleLogout}>Cerrar sesión</button>
         </div>
 
         <Routes>

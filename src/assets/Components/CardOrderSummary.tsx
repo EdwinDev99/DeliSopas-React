@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Order } from "./Schemas/luchSchema";
 import { doc, updateDoc } from "firebase/firestore";
-import { db } from "./firebase/firebase";
+import { db } from "../firebase/firebase";
 import { Modal, Button, Form } from "react-bootstrap";
 
 type Pedido = {
