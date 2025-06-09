@@ -154,6 +154,43 @@ function ResumenPedidoCard({
     }
   };
 
+  const imprimirParaCocina = () => {
+    const printWindow = window.open("", "PRINT", "height=400,width=300");
+
+    if (!printWindow) return;
+
+    // Generamos el HTML básico para la impresión
+    printWindow.document.write(`
+    <html>
+      <head>
+        <title>Pedido Cocina - Mesa ${pedido.mesa}</title>
+        <style>
+          body { font-family: monospace; padding: 10px; }
+          h3 { text-align: center; }
+          ul { list-style: none; padding: 0; }
+          li { margin-bottom: 6px; font-size: 16px; }
+          hr { margin: 10px 0; }
+        </style>
+      </head>
+      <body>
+        <h3>Mesa ${pedido.mesa}</h3>
+        <p>Detalles: ${pedido.detalles || "Ninguno"}</p>
+        <hr />
+        <ul>
+          ${Object.values(productosAgrupados)
+            .map((item) => `<li>${item.nombre} x${item.cantidad}</li>`)
+            .join("")}
+        </ul>
+      </body>
+    </html>
+  `);
+
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+    printWindow.close();
+  };
+
   return (
     <div className="card p-2 mb-2 shadow-sm">
       <div className="d-flex justify-content-between align-items-center mb-1">
@@ -264,30 +301,34 @@ function ResumenPedidoCard({
         >
           ➕ Producto
         </button>
+
+        <button
+          className="btn btn-sm btn-outline-secondary"
+          onClick={imprimirParaCocina}
+        >
+          🖨️ Imprimir
+        </button>
       </div>
 
       {/* Modal */}
-      <Modal show={showModal} onHide={handleCloseModal}>
+      <Modal show={showModal} onHide={handleCloseModal} centered>
         <Modal.Header closeButton>
-          <Modal.Title>Agregar producto</Modal.Title>
+          <Modal.Title>Agregar Producto</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form>
-            <Form.Group controlId="formNombreProducto">
-              <Form.Label>Nombre</Form.Label>
+            <Form.Group className="mb-2">
+              <Form.Label>Nombre del producto</Form.Label>
               <Form.Control
                 type="text"
-                placeholder="Nombre"
                 value={nuevoNombre}
                 onChange={(e) => setNuevoNombre(e.target.value)}
               />
             </Form.Group>
-
-            <Form.Group controlId="formPrecioProducto" className="mt-3">
+            <Form.Group>
               <Form.Label>Precio</Form.Label>
               <Form.Control
                 type="number"
-                placeholder="Precio"
                 value={nuevoPrecio}
                 onChange={(e) => setNuevoPrecio(e.target.value)}
               />
