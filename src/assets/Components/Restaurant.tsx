@@ -16,6 +16,7 @@ import {
   orderBy,
 } from "firebase/firestore";
 import { signOut } from "firebase/auth";
+import DeliLogo from "../../img/DeliLogo.png";
 
 const lunchItems: Order[] = [
   { nombre: "Almuerzo", precio: 13000 },
@@ -164,29 +165,43 @@ function Restaurant() {
     <Router>
       <div className="container mt-4">
         <h1 className="mb-4 text-center text-success fw-bold display-4">
+          <img
+            src={DeliLogo}
+            alt="Delisopas Logo"
+            style={{ height: "80px" }}
+            className="me-3"
+          />
           Delisopas
         </h1>
 
-        <div className="d-flex flex-wrap gap-3 mb-5">
-          <Link to="/almuerzos" className="btn btn-primary">
-            Almuerzos
+        <div className="d-flex flex-wrap gap-3 justify-content-center mb-5">
+          <Link to="/almuerzos" className="btn btn-outline-primary shadow">
+            🍛 Almuerzos
           </Link>
-          <Link to="/desayunos" className="btn btn-success">
-            Desayunos
+          <Link to="/desayunos" className="btn btn-outline-success shadow">
+            🥐 Desayunos
           </Link>
-          <Link to="/bebidas" className="btn btn-secondary">
-            Bebidas
+          <Link to="/bebidas" className="btn btn-outline-secondary shadow">
+            🧃 Bebidas
           </Link>
-          <Link to="/pedidos" className="btn btn-warning">
-            Pedidos Recibidos
+          <Link to="/pedidos" className="btn btn-outline-warning shadow">
+            📝 Pedidos
           </Link>
-          <Link to="/resumen" className="btn btn-info">
-            Resumen del Día
+          <Link to="/resumen" className="btn btn-outline-info shadow">
+            📊 Resumen
           </Link>
-          <button onClick={handleCerrarCaja} className="btn btn-danger">
-            Cerrar Caja
+          <button
+            onClick={handleCerrarCaja}
+            className="btn btn-outline-danger shadow"
+          >
+            🧾 Cerrar Caja
           </button>
-          <button onClick={handleLogout}>Cerrar sesión</button>
+          <button
+            onClick={handleLogout}
+            className="btn btn-outline-dark shadow"
+          >
+            🔓 Cerrar sesión
+          </button>
         </div>
 
         <Routes>
@@ -222,51 +237,42 @@ function Restaurant() {
           />
           <Route
             path="/pedidos"
-            element={
-              <>
-                {["pendiente", "en cocina", "servido"].map((estado) => (
-                  <div key={estado} className="mb-5">
-                    {/* Encabezado tipo pestaña con ícono, color y estilo */}
-                    <div
-                      className={`d-flex align-items-center justify-content-center mb-3 py-2 rounded fs-5 fw-bold shadow-sm ${
-                        estado === "pendiente"
-                          ? "bg-secondary text-white"
-                          : estado === "en cocina"
-                          ? "bg-warning text-dark"
-                          : estado === "servido"
-                          ? "bg-info text-dark"
-                          : "bg-dark"
-                      }`}
-                    >
-                      {estado === "pendiente" && "⏳ PENDIENTE"}
-                      {estado === "en cocina" && "👨‍🍳 EN COCINA"}
-                      {estado === "servido" && "🍽️ SERVIDO"}
-                    </div>
+            element={["pendiente", "en cocina", "servido"].map((estado) => (
+              <div key={estado} className="mb-5">
+                <div
+                  className={`text-center mb-3 py-2 rounded fs-5 fw-bold shadow-sm ${
+                    estado === "pendiente"
+                      ? "bg-secondary text-white"
+                      : estado === "en cocina"
+                      ? "bg-warning text-dark"
+                      : "bg-info text-dark"
+                  }`}
+                >
+                  {estado === "pendiente" && "⏳ PENDIENTE"}
+                  {estado === "en cocina" && "👨‍🍳 EN COCINA"}
+                  {estado === "servido" && "🍽️ SERVIDO"}
+                </div>
 
-                    {/* Tarjetas de pedidos */}
-                    <div className="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-2">
-                      {pedidos
-                        .filter(
-                          (pedido) =>
-                            !pedido.pagado &&
-                            (pedido.estado || "pendiente") === estado
-                        )
-                        .map((pedido, index) => (
-                          <div className="col" key={index}>
-                            <ResumenPedidoCard
-                              pedido={pedido}
-                              onPagoCompleto={handlePagoCompleto}
-                              onCancelarPedido={handleCancelarPedido}
-                            />
-                          </div>
-                        ))}
-                    </div>
-                  </div>
-                ))}
-              </>
-            }
+                <div className="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-2">
+                  {pedidos
+                    .filter(
+                      (pedido) =>
+                        !pedido.pagado &&
+                        (pedido.estado || "pendiente") === estado
+                    )
+                    .map((pedido, index) => (
+                      <div className="col" key={index}>
+                        <ResumenPedidoCard
+                          pedido={pedido}
+                          onPagoCompleto={handlePagoCompleto}
+                          onCancelarPedido={handleCancelarPedido}
+                        />
+                      </div>
+                    ))}
+                </div>
+              </div>
+            ))}
           />
-
           <Route
             path="/resumen"
             element={
