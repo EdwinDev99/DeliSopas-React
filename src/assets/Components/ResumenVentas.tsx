@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Order } from "./Schemas/luchSchema";
 
 type Pedido = {
@@ -53,10 +53,10 @@ function ResumenPedidoSimple({ pedido }: { pedido: Pedido }) {
           ))}
         </ul>
 
-        <p className="card-text mb-0">
+        {/* <p className="card-text mb-0">
           💳 <strong>Método Pago:</strong>{" "}
           {pedido.metodoPago || "No especificado"}
-        </p>
+        </p> */}
         <p className="card-text text-muted small mt-1 mb-2">
           📅 <strong>Fecha de Pago:</strong>{" "}
           {fechaFormateada || "No registrada"}
