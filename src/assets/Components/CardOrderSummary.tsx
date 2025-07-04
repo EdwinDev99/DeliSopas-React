@@ -13,6 +13,7 @@ type Pedido = {
   pagosDivididos?: Record<string, number>;
   pagado?: boolean;
   estado?: string;
+  fechaPago?: string; // ✅ Campo agregado
 };
 
 type Props = {
@@ -159,36 +160,53 @@ function ResumenPedidoCard({
 
     if (!printWindow) return;
 
-    // Generamos el HTML básico para la impresión
     printWindow.document.write(`
-    <html>
-      <head>
-        <title>Pedido Cocina - Mesa ${pedido.mesa}</title>
-        <style>
-          body { font-family: monospace; padding: 10px; }
-          h3 { text-align: center; }
-          ul { list-style: none; padding: 0; }
-          li { margin-bottom: 6px; font-size: 16px; }
-          hr { margin: 10px 0; }
-        </style>
-      </head>
-      <body>
-        <h3>Mesa ${pedido.mesa}</h3>
-        <p>Detalles: ${pedido.detalles || "Ninguno"}</p>
-        <hr />
-        <ul>
-          ${Object.values(productosAgrupados)
-            .map((item) => `<li>${item.nombre} x${item.cantidad}</li>`)
-            .join("")}
-        </ul>
-      </body>
-    </html>
-  `);
+      <html>
+        <head>
+          <title>Pedido Cocina - Mesa ${pedido.mesa}</title>
+          <style>
+            body { font-family: monospace; padding: 10px; }
+            h3 { text-align: center; }
+            ul { list-style: none; padding: 0; }
+            li { margin-bottom: 6px; font-size: 16px; }
+            hr { margin: 10px 0; }
+          </style>
+        </head>
+        <body>
+          <h3>Mesa ${pedido.mesa}</h3>
+          <p>Detalles: ${pedido.detalles || "Ninguno"}</p>
+          <hr />
+          <ul>
+            ${Object.values(productosAgrupados)
+              .map((item) => `<li>${item.nombre} x${item.cantidad}</li>`)
+              .join("")}
+          </ul>
+        </body>
+      </html>
+    `);
 
     printWindow.document.close();
     printWindow.focus();
     printWindow.print();
     printWindow.close();
+  };
+
+  const handlePagoCompletoClick = async () => {
+    const pedidoActualizado: Pedido = {
+      ...pedido,
+      pagosDivididos,
+      metodoPago: "dividido",
+      pagado: true,
+      fechaPago: new Date().toISOString(), // ✅ ya no da error
+    };
+
+    try {
+      const pedidoRef = doc(db, "pedidos", pedido.id);
+      await updateDoc(pedidoRef, pedidoActualizado);
+      onPagoCompleto(pedidoActualizado);
+    } catch (error) {
+      console.error("Error al guardar el pago completo:", error);
+    }
   };
 
   return (
@@ -276,14 +294,7 @@ function ResumenPedidoCard({
         <button
           className="btn btn-sm btn-success"
           disabled={pendiente !== 0}
-          onClick={() => {
-            onPagoCompleto({
-              ...pedido,
-              pagosDivididos,
-              metodoPago: "dividido",
-              pagado: true,
-            });
-          }}
+          onClick={handlePagoCompletoClick}
         >
           ✔️ Hecho
         </button>
@@ -310,7 +321,6 @@ function ResumenPedidoCard({
         </button>
       </div>
 
-      {/* Modal */}
       <Modal show={showModal} onHide={handleCloseModal} centered>
         <Modal.Header closeButton>
           <Modal.Title>Agregar Producto</Modal.Title>
