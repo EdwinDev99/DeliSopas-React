@@ -14,6 +14,7 @@ type Pedido = {
   pagado?: boolean;
   estado?: string;
   fechaPago?: string; // ✅ Campo agregado
+  timestamp?: any;
 };
 
 type Props = {
@@ -208,6 +209,9 @@ function ResumenPedidoCard({
       console.error("Error al guardar el pago completo:", error);
     }
   };
+  const fechaCreacion = pedido.timestamp
+    ? new Date(pedido.timestamp.seconds * 1000).toLocaleString()
+    : "Sin fecha";
 
   return (
     <div className="card p-2 mb-2 shadow-sm">
@@ -242,10 +246,13 @@ function ResumenPedidoCard({
           <strong>📝 Detalles:</strong> {pedido.detalles}
         </p>
       )}
+      <div className="text-end text-muted small mt-1">
+        Creado: {fechaCreacion}
+      </div>
 
-      <h6 className="fw-bold text-end small">
+      {/* <h6 className="fw-bold text-end small">
         Total: ${totalPedido.toLocaleString()}
-      </h6>
+      </h6> */}
 
       <div className="mt-2 mb-2">
         <label className="me-2 small">Estado:</label>
